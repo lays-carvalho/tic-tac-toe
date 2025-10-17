@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign Up</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/signup.css') }}">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Irish+Grover&family=Montserrat:wght@400;500;700&display=swap"
+    rel="stylesheet">
+</head>
+<body class="body-landing">
+
+<header class="header">
+  <a href="{{ url_for('index') }}" class="logo">
+    <div class="logo-img">
+      <img src="{{ url_for('static', filename='assets/images/logo-image.png') }}" alt="">
+    </div>
+    <div class="logo-name">Studio<span class="detail-logo">Alivio</span></div>
+  </a>
+  <div class="header-buttons">
+    <a href="{{ url_for('auth.login') }}" class="btn-header login">Login</a>
+  </div>
+</header>
+
+<div class="signup-container">
+  <h2 class="signup-title">Create Account</h2>
+  <form method="POST" action="{{ url_for('users.create_user') }}">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" id="username" name="username"
+             class="input-field" placeholder="Enter your username" required>
+    </div>
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password"
+             class="input-field" placeholder="Enter your password" required>
+    </div>
+    <div class="form-group">
+      <label for="confirm-password">Confirm Password</label>
+      <input type="password" id="confirm-password" name="confirm-password"
+             class="input-field" placeholder="Enter your password again" required>
+    </div>
+    <button type="submit" class="btn-submit">Sign Up</button>
+  </form>
+  <div class="signup-footer">
+    <p>Already have an account?
+      <a href="{{ url_for('auth.login') }}">Login</a>
+    </p>
+  </div>
+</div>
+
+<footer class="footer">
+  <div class="footer-links">
+    <a href="#">Privacy Policy</a>
+    <a href="#">Terms of Use</a>
+    <a href="#">Support</a>
+  </div>
+  <p>© 2025 Studio Alivio</p>
+</footer>
+
+{% if error %}
+<div id="errorModal" class="error-modal-overlay">
+  <div class="error-modal-content">
+    <h3>Ops! Algo deu errado.</h3>
+    <p>{{ error }}</p>
+    <button id="closeErrorModal" class="error-modal-close-btn">OK</button>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const modal = document.getElementById('errorModal');
+    const closeBtn = document.getElementById('closeErrorModal');
+    modal.style.display = 'flex';
+    closeBtn.onclick = function() {
+      modal.style.display = 'none';
+    }
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = 'none';
+      }
+    }
+  });
+</script>
+{% endif %}
+
+</body>
+</html>

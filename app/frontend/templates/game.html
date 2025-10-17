@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe - Multiplayer</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Irish+Grover&family=Montserrat:wght@400;500;700&display=swap" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" />
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+</head>
+<body class="body-game">
+  <div id="app"></div>
+  <div class="game-container">
+    <div class="scoreboard-container player">
+      <div class="hangers">
+        <div class="line left"></div>
+        <div class="line right"></div>
+      </div>
+      <div class="scoreboard">
+        <div class="scoreboard-header">
+          <span class="icon">👾</span> Você (<span id="player-mark">X</span>)
+        </div>
+        <div class="scoreboard-body">
+          <div class="score">Vitórias: <b id="player-wins">0</b></div>
+          <div class="score">Derrotas: <b id="player-losses">0</b></div>
+          <div class="score">Empates: <b id="player-draws">0</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="game-center">
+      <h1 id="game-title">Play vs CPU 🤖</h1>
+      <p class="subtitle">O primeiro a alinhar três marcas vence!</p>
+
+      <div id="board">
+        <div class="cell" data-index="0"></div>
+        <div class="cell" data-index="1"></div>
+        <div class="cell" data-index="2"></div>
+        <div class="cell" data-index="3"></div>
+        <div class="cell" data-index="4"></div>
+        <div class="cell" data-index="5"></div>
+        <div class="cell" data-index="6"></div>
+        <div class="cell" data-index="7"></div>
+        <div class="cell" data-index="8"></div>
+      </div>
+
+      <p id="game-status">Sua vez (X)</p>
+      <button type="button" id="restart" style="display: none;">Reiniciar</button>
+      <a href="{{ url_for('lobby') }}" class="back-btn">Voltar ao Lobby</a>
+    </div>
+
+    <div class="scoreboard-container opponent">
+      <div class="hangers">
+        <div class="line left"></div>
+        <div class="line right"></div>
+      </div>
+      <div class="scoreboard">
+        <div class="scoreboard-header">
+          <span class="icon" id="opponent-icon">🤖</span>
+          <span id="opponent-name">CPU</span> (<span id="opponent-mark">O</span>)
+        </div>
+        <div class="scoreboard-body">
+          <div class="score">Vitórias: <b id="opponent-wins">0</b></div>
+          <div class="score">Derrotas: <b id="opponent-losses">0</b></div>
+          <div class="score">Empates: <b id="opponent-draws">0</b></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

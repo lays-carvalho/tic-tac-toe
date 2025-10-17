@@ -1,0 +1,223 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  list-style: none;
+  text-decoration: none;
+}
+
+:root {
+  --color-red: #ED2F2F;
+  --color-yellow: #E7A63A;
+  --color-blue: #28A0BB;
+  --color-green: #52B94B;
+  --color-dark: #222222;
+  --color-dark-80: rgba(34, 34, 34, 0.8);
+  --color-dark-90: rgba(34, 34, 34, 0.9);
+  --color-medium-gray: #CCCCCC;
+  --color-light-gray: #DCDCDC;
+  --color-white: #FFFFFF;
+
+  --font-pixel: 'Press Start 2P', sans-serif;
+  --font-logo: 'Irish Grover', cursive;
+  --font-default: 'Montserrat', sans-serif;
+}
+
+.body-landing {
+  background-color: var(--color-dark);
+  color: var(--color-white);
+  background-image: url('../assets/images/tic-tac-toe-home-background.jpg');
+  background-size: cover;
+  background-position: center;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* overlay */
+.body-landing::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.5) 80%);
+  z-index: -1;
+}
+
+.header {
+  width: 100%;
+  padding: 10px 100px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: var(--color-dark-90);
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 10;
+}
+
+.logo {
+  font-family: var(--font-logo);
+  font-size: 28px;
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logo-img img {
+  display: flex;
+  width: 50px;
+  height: 50px;
+}
+
+.logo-name .detail-logo {
+  color: var(--color-red);
+  padding-left: -2px;
+}
+
+.header-buttons {
+  display: flex;
+  gap: 30px;
+}
+
+.btn-header {
+  font-family: var(--font-pixel);
+  font-size: 10px;
+  background-color: var(--color-light-gray);
+  color: var(--color-dark);
+  padding: 10px 20px;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.btn-header.login {
+  background-color: var(--color-white);
+}
+
+.btn-header.signup {
+  color: var(--color-white);
+  background-color: var(--color-red);
+}
+
+.btn-header:hover {
+  opacity: 0.85;
+}
+
+.footer {
+  width: 100%;
+  position: absolute;
+  bottom: 0;
+  padding: 20px 0;
+  text-align: center;
+  font-size: 12px;
+  font-family: var(--font-pixel);
+}
+
+.footer-links {
+  margin-bottom: 20px;
+}
+
+.footer-links a {
+  margin: 0 15px;
+  color: var(--color-light-gray);
+  text-decoration: none;
+  transition: 0.2s;
+}
+
+.footer-links a:hover {
+  color: var(--color-white);
+}
+
+/* ===== Modal de Erro Customizado ===== */
+.error-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  display: none; /* Inicia oculto */
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.error-modal-content {
+  background-color: var(--color-white);
+  color: var(--color-dark);
+  padding: 40px;
+  border-radius: 10px;
+  text-align: center;
+  font-family: var(--font-default);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  max-width: 400px;
+  position: relative;
+}
+
+.error-modal-content h3 {
+  font-family: var(--font-pixel);
+  font-size: 18px;
+  color: var(--color-red);
+  margin-bottom: 15px;
+}
+
+.error-modal-content p {
+  font-size: 16px;
+  margin-bottom: 25px;
+  line-height: 1.5;
+}
+
+.error-modal-close-btn {
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  background-color: var(--color-red);
+  color: var(--color-white);
+  padding: 12px 30px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.error-modal-close-btn:hover {
+  opacity: 0.85;
+}
+
+/* Botão de Deletar Conta no Header */
+.btn-header.delete {
+    background-color: var(--color-red);
+    color: var(--color-white);
+}
+
+/* Botões do Modal de Confirmação */
+.confirm-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.btn-cancel, .btn-confirm-delete {
+    font-family: var(--font-pixel);
+    font-size: 14px;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.btn-cancel {
+    background-color: var(--color-medium-gray);
+    color: var(--color-dark);
+}
+
+.btn-confirm-delete {
+    background-color: var(--color-red);
+    color: var(--color-white);
+}
+
+.btn-cancel:hover, .btn-confirm-delete:hover {
+    opacity: 0.85;
+}

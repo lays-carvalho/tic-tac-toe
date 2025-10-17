@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lobby - Studio Alivio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lobby.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Irish+Grover&family=Montserrat:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+</head>
+<body class="body-lobby">
+
+<header class="header">
+    <a href="{{ url_for('index') }}" class="logo">
+        <div class="logo-img"><img src="{{ url_for('static', filename='assets/images/logo-image.png') }}" alt="Studio Alivio Logo"></div>
+        <div class="logo-name">Studio<span class="detail-logo">Alivio</span></div>
+    </a>
+    <nav class="header-nav">
+        <div class="notification-container">
+            <span id="notification-bell" class="material-icons notification">notifications</span>
+            <span id="notification-badge" class="notification-badge"></span>
+        </div>
+        <div id="notification-panel" class="notification-panel">
+            <h4>Convites de Partida</h4>
+            <div id="notification-list"></div>
+        </div>
+        <button id="logoutBtn" class="btn-header login">Sair</button>
+        <button id="deleteAccountBtn" class="btn-header delete">Apagar Conta</button>
+    </nav>
+</header>
+
+<main class="lobby-main">
+    <section class="left-panel">
+        <h1>Play Tic Tac Toe</h1>
+        <p class="subtitle" id="subtitle">Escolha seu modo de jogo</p>
+        <div class="buttons">
+            <a href="{{ url_for('game', mode='cpu') }}" class="btn btn-robot">
+                <span class="material-icons">smart_toy</span>
+                Jogar vs BOT
+            </a>
+            <button id="play-online-btn" class="btn btn-online">
+                <span class="material-icons">language</span>
+                Jogar Online
+            </button>
+        </div>
+    </section>
+    <section id="online-section" class="right-panel" style="display: none;">
+        <h2>Jogadores Online</h2>
+        <ul id="players-list" class="players-list"></ul>
+    </section>
+</main>
+
+<section id="vs-panel-section" class="bottom-panel" style="display: none;">
+    <div id="player1-panel" class="player-box"></div>
+    <div class="vs-section">
+        <span class="swords-icon">⚔️</span>
+        <p class="vs-text">VS</p>
+    </div>
+    <div id="player2-panel" class="player-box waiting"></div>
+</section>
+
+<div id="start-game-section" class="start-container" style="display: none;">
+    <button id="readyBtn" class="btn-start">Estou Pronto</button>
+    <p id="game-status" class="game-status"></p>
+</div>
+
+<div id="confirmDeleteModal" class="error-modal-overlay">
+    <div class="error-modal-content">
+      <h3>Tem certeza?</h3>
+      <p>Esta ação é irreversível.</p>
+      <div class="confirm-buttons">
+          <button id="cancelDelete" class="btn-cancel">Cancelar</button>
+          <button id="confirmDelete" class="btn-confirm-delete">Sim, apagar</button>
+      </div>
+    </div>
+</div>
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+</html>
