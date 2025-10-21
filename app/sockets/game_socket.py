@@ -18,6 +18,16 @@ def register_game_events(socketio, db):
     user_service = UserService(UserRepository(db))
     room_repo = RoomRepository(db)
 
+    # ✅ Agora broadcast_online_users está dentro da função e pode usar user_service
+    def broadcast_online_users():
+        sessions = session_repo.get_all_sessions()
+        online_list = []
+        for s in sessions:
+            user = user_service.get_by_id(s["user_id"])
+            if user:
+                online_list.append({"id": str(user["_id"]), "username": user["username"]})
+        socketio.emit('online_users', online_list)
+
     @socketio.on('connect')
     def on_connect():
         print(f"Cliente conectado: {request.sid}")
@@ -28,6 +38,7 @@ def register_game_events(socketio, db):
         if user_id:
             user_sids[user_id] = request.sid
             print(f"Usuário {user_id} registrado com o SID {request.sid}")
+            broadcast_online_users()
 
     @socketio.on('join_game_room')
     def on_join_game_room(data):
@@ -84,3 +95,4 @@ def register_game_events(socketio, db):
                     del user_sids[disconnected_user_id]
                 
                 print(f"Usuário {user.get('username')} desconectado e sessão removida.")
+                broadcast_online_users()
