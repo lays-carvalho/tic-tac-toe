@@ -29,6 +29,10 @@ def login():
     
     session_repo.create(user_id, token)
     
+    # ✅ Notificar usuários online para o monitor
+    from app.sockets.game_socket import notify_online_users
+    notify_online_users()
+
     response = redirect(url_for("lobby"))
     response.set_cookie("token", token, httponly=True, max_age=60 * 60 * 24 * 30)
     return response
@@ -39,6 +43,10 @@ def logout(current_user):
     token = request.cookies.get("token")
     if token:
         session_repo.delete(token)
+
+    # ✅ Notificar usuários online para o monitor
+    from app.sockets.game_socket import notify_online_users
+    notify_online_users()    
 
     try:
         room_service.leave_room(str(current_user["_id"]), current_user["username"])

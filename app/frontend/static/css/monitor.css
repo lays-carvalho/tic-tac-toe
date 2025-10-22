@@ -1,0 +1,126 @@
+/* monitor.css */
+
+/* Layout do main */
+main {
+    padding: 5% 8%;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+}
+
+/* Seções */
+section {
+    background-color: rgba(0,0,0,0.5);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+/* Títulos das seções com toggle */
+section h2 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+/* Observação de refresh */
+section p {
+    font-size: 0.9em;
+    color: var(--color-medium-gray);
+    margin-bottom: 10px;
+}
+
+/* Listas de usuários */
+ul {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-left: 10px;
+}
+
+/* Itens da lista */
+ul li {
+    padding: 8px 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: var(--font-default);
+    color: var(--color-white);
+}
+
+ul li:last-child {
+    border-bottom: none;
+}
+
+/* Mensagem padrão quando não há usuários */
+.no-players {
+    text-align: center;
+    font-style: italic;
+    color: var(--color-medium-gray);
+}
+
+/* Botão de logout */
+#logoutBtn {
+    background-color: var(--color-red);
+    color: var(--color-white);
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    float: right;
+    transition: all 0.2s;
+}
+
+#logoutBtn:hover {
+    opacity: 0.85;
+}
+
+/* Botões de toggle das seções */
+.toggle-btn {
+    background-color: var(--color-dark-80);
+    color: var(--color-white);
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 18px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.toggle-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Scroll mais bonito */
+ul::-webkit-scrollbar {
+    width: 8px;
+}
+
+ul::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 8px;
+}
+
+ul::-webkit-scrollbar-thumb {
+    background-color: rgba(255,255,255,0.2);
+    border-radius: 8px;
+}
+
+/* Títulos do header */
+header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 20px 8%;
+    background-color: rgba(0,0,0,0.6);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}

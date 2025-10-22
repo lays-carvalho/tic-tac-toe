@@ -17,6 +17,10 @@ class SessionRepository:
     
     def get_by_user(self, user_id):
         return self.sessions.find_one({"user_id": user_id})
+    
+    def get_by_token(self, token):
+        """Retorna a sessão pelo token"""
+        return self.sessions.find_one({"token": token})
 
     def get_all_sessions(self):
         return list(self.sessions.find())

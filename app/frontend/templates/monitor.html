@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor - Studio Alivio</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/lobby.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/monitor.css') }}">
+
+</head>
+<body>
+<header>
+    <h1>Monitoramento em Tempo Real</h1>
+    <p style="font-size: 0.9em; color: rgb(255, 255, 255);">(Dê refresh na página para atualizar a lista)</p>
+    <button id="logoutBtn">Sair</button>
+</header>
+
+<main>
+    <section>
+        <h2><button class="toggle-btn">+</button> Usuários Criados</h2>
+        <ul id="all-users-list"></ul>
+    </section>
+
+    <section>
+        <h2><button class="toggle-btn">+</button> Usuários Online</h2>
+        <ul id="online-users-list"></ul>
+    </section>
+</main>
+
+
+<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/monitor.js') }}"></script>
+</body>
+</html>

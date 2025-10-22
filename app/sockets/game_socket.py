@@ -1,4 +1,3 @@
-# game_socket.py
 from flask import request
 from flask_socketio import emit, join_room
 from app.services.game_service import GameService
@@ -12,14 +11,44 @@ from app import db, socketio
 
 user_sids = {}
 session_repo = SessionRepository(db)
+room_repo = RoomRepository(db)
 
+# --- Notificações ---
+def notify_monitor():
+    rooms = room_repo.get_all()
+    games = []
+
+    for r in rooms:
+        for g in r.get("games", []):
+            games.append({
+                "game_id": g,
+                "status": r.get("status", "active"),
+                "players": [{"username": p["username"], "id": str(p["_id"])} for p in r.get("players", [])]
+            })
+
+    # Envia para todos os clientes
+    socketio.emit("game_update_for_monitor", games, namespace="/")
+
+
+def notify_online_users():
+    sessions = session_repo.get_all_sessions()
+    users = []
+
+    for s in sessions:
+        user = db["users"].find_one({"_id": s["user_id"]})
+        if user:
+            users.append({"id": str(user["_id"]), "username": user["username"]})
+
+    # Envia para todos os clientes conectados
+    socketio.emit("online_users_update", users, namespace="/")
+
+
+# --- Registro dos eventos SocketIO ---
 def register_game_events(socketio, db):
     game_service = GameService(db)
     room_service = RoomService(db)
     user_service = UserService(UserRepository(db))
-    room_repo = RoomRepository(db)
-
-    # Guarda pedidos de restart: {room_id: [user_id1, user_id2]}
+    
     restart_requests = {}
 
     def broadcast_online_users():
@@ -28,7 +57,8 @@ def register_game_events(socketio, db):
             {"id": str(user["_id"]), "username": user["username"]}
             for s in sessions if (user := user_service.get_by_id(s["user_id"]))
         ]
-        socketio.emit('online_users', online_list)
+        # Envia para todos os clientes conectados
+        socketio.emit('online_users', online_list, namespace='/')
 
     @socketio.on('connect')
     def on_connect():
@@ -104,7 +134,6 @@ def register_game_events(socketio, db):
                 to=sid
             )
 
-    # --- NOVO: Solicitar restart ---
     @socketio.on('request_restart')
     def on_request_restart(data):
         room_id = data.get('room_id')
@@ -138,16 +167,14 @@ def register_game_events(socketio, db):
         if len(players) != 2: return
 
         if accept:
-            # Cria novo game
             game_id = game_service.create_game(room_id)
             room['games'].append(game_id)
             room_repo.update_room(str(room['_id']), room)
+            notify_monitor()
 
-            # Envia novo estado para cada jogador
             for player in players:
                 sid = user_sids.get(str(player['id']))
-                if not sid:
-                    continue
+                if not sid: continue
                 role_entry = next((r for r in room.get("playersRoles", []) if r["id"] == player["id"]), None)
                 my_role = role_entry["role"] if role_entry else "X"
                 opponent = next((p for p in room['players'] if p['id'] != player['id']), None)
@@ -171,7 +198,6 @@ def register_game_events(socketio, db):
 
         restart_requests.pop(room_id, None)
 
-
     @socketio.on('game_over')
     def on_game_over(data):
         room_id = data.get('room_id')
@@ -180,7 +206,6 @@ def register_game_events(socketio, db):
         room = room_repo.get_room(room_id)
         if not room: return
 
-        # Atualiza placar interno do room
         for player in room.get('players', []):
             role_entry = next((r for r in room.get("playersRoles", []) if r["id"] == player['id']), None)
             player_role = role_entry["role"] if role_entry else None
@@ -196,10 +221,9 @@ def register_game_events(socketio, db):
                 else:
                     player['score']['losses'] += 1
 
-        # Atualiza a sala no DB
         room_repo.update_room(str(room['_id']), room)
+        notify_monitor()
 
-        # Envia game_over + score para cada jogador
         for player in room.get('players', []):
             sid = user_sids.get(str(player['id']))
             if not sid: continue
@@ -222,14 +246,6 @@ def register_game_events(socketio, db):
                 }
             }, to=sid)
 
-
-    @socketio.on('disconnect')
-    def on_disconnect():
-        disconnected_user_id = next((uid for uid, sid in user_sids.items() if sid == request.sid), None)
-        if not disconnected_user_id: return
-        user_sids.pop(disconnected_user_id, None)
-        broadcast_online_users()
-
     @socketio.on('exit_game')
     def on_exit_game(data):
         user_id = data.get('user_id')
@@ -248,4 +264,5 @@ def register_game_events(socketio, db):
         if sid:
             socketio.emit("return_to_lobby", {}, to=sid)
 
+        notify_monitor()
         print("Jogador saiu do jogo e voltou ao lobby com segurança.")

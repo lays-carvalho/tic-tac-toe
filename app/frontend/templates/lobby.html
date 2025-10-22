@@ -43,6 +43,14 @@
                 <span class="material-icons">language</span>
                 Jogar Online
             </button>
+
+            {% if current_user.username == 'admin' %}
+            <a href="{{ url_for('monitor') }}" id="monitor-btn" class="btn btn-monitor">
+                <span class="material-icons">analytics</span>
+                Monitorar Jogo
+            </a>
+            {% endif %}
+
         </div>
     </section>
     <section id="online-section" class="right-panel" style="display: none;">

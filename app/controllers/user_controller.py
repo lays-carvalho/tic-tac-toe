@@ -58,11 +58,13 @@ def delete_me(current_user):
     return response
 
 # Rotas de admin
+# --- Retorna todos os usuários cadastrados (apenas admin) ---
 @user_bp.route("/users/all", methods=["GET"])
 @token_required(admin_only=True)
-def list_users(current_user):
-    users = user_service.get_all()
-    return jsonify([user_summary(u) for u in users])
+def get_all_users(current_user):
+    users = user_service.get_all()  # <--- aqui
+    result = [{"id": u["_id"], "username": u["username"]} for u in users]
+    return jsonify(result)
 
 @user_bp.route("/users/<id>", methods=["DELETE"])
 @token_required(admin_only=True)
