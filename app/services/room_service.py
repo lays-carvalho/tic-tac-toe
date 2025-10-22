@@ -32,30 +32,42 @@ class RoomService:
         room["playersInvited"].append({"id": invitee_id, "username": invitee_username})
         self.repo.update_room(str(room["_id"]), room)
         return room, None
-
+    
     def accept_invite(self, user_id, username, room_id):
         room_to_join = self.repo.get_room(room_id)
-        if not room_to_join: return None, "Sala não encontrada. O anfitrião pode ter cancelado."
-        if not any(p["id"] == user_id for p in room_to_join.get("playersInvited", [])): return None, "Você não foi convidado para esta sala."
-        if len(room_to_join.get("players", [])) >= self.MAX_PLAYERS: return None, "A sala já está cheia."
+        if not room_to_join: 
+            return None, "Sala não encontrada. O anfitrião pode ter cancelado."
 
+        if not any(p["id"] == user_id for p in room_to_join.get("playersInvited", [])):
+            return None, "Você não foi convidado para esta sala."
+
+        if len(room_to_join.get("players", [])) >= self.MAX_PLAYERS:
+            return None, "A sala já está cheia."
+
+        # Deleta sala do usuário se ele já tiver uma
         user_own_room = self.repo.find_room_by_creator(user_id)
         if user_own_room:
             self.repo.delete_room(str(user_own_room["_id"]))
 
+        # Adiciona jogador à sala
         room_to_join["players"].append({"id": user_id, "username": username})
         room_to_join["playersReady"].append({"id": user_id, "username": username, "ready": False})
         room_to_join["playersInvited"] = [p for p in room_to_join["playersInvited"] if p["id"] != user_id]
         room_to_join["status"] = "Completa"
-        
-        roles = random.sample(["X", "O"], 2)
-        room_to_join["playersRoles"] = [
-            {"id": room_to_join["players"][0]["id"], "username": room_to_join["players"][0]["username"], "role": roles[0]},
-            {"id": room_to_join["players"][1]["id"], "username": room_to_join["players"][1]["username"], "role": roles[1]},
-        ]
-        
+
+        # Define roles X e O quando a sala ficar completa
+        if len(room_to_join["players"]) == 2:
+            roles = random.sample(["X", "O"], 2)
+            room_to_join["playersRoles"] = [
+                {"id": room_to_join["players"][0]["id"], "username": room_to_join["players"][0]["username"], "role": roles[0]},
+                {"id": room_to_join["players"][1]["id"], "username": room_to_join["players"][1]["username"], "role": roles[1]},
+            ]
+
         self.repo.update_room(str(room_to_join["_id"]), room_to_join)
         return room_to_join, None
+
+
+    
 
     def set_player_ready(self, room_id, user_id):
         room = self.repo.get_room(room_id)

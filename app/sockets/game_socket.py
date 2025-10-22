@@ -40,6 +40,17 @@ def register_game_events(socketio, db):
             print(f"Usuário {user_id} registrado com o SID {request.sid}")
             broadcast_online_users()
 
+
+    @socketio.on('join_room')
+    def on_join_room(data):
+        room_id = data.get('room_id')
+        user_id = data.get('user_id')
+
+        if room_id and request.sid:
+            join_room(room_id)
+            print(f"✅ Usuário {user_id} entrou na sala {room_id} via socket.")
+       
+
     @socketio.on('join_game_room')
     def on_join_game_room(data):
         room_id = data.get('room_id')
@@ -52,6 +63,9 @@ def register_game_events(socketio, db):
                 if game:
                     emit('game_state', {'room': convert_objectid(room), 'game': convert_objectid(game)})
             print(f"Cliente {request.sid} entrou na sala de jogo {room_id}")
+
+
+
     
     @socketio.on('make_move')
     def on_make_move(data):

@@ -23,36 +23,51 @@ def get_my_room(current_user):
 @token_required()
 def invite_player(current_user, invitee_id):
     invitee = user_service.get_by_id(invitee_id)
-    if not invitee: return jsonify({"error": "Usuário convidado não encontrado"}), 404
-    
+    if not invitee:
+        return jsonify({"error": "Usuário convidado não encontrado"}), 404
+
     room, error = room_service.send_invite(str(current_user["_id"]), invitee_id, invitee["username"])
-    if error: return jsonify({"error": error}), 400
-    
-    # Notifica o jogador convidado
+    if error:
+        return jsonify({"error": error}), 400
+
+    room_json = convert_objectid(room)  # ✅ garante serialização
+
+    # Notifica jogador convidado
     if invitee_id in user_sids:
         invitee_sid = user_sids[invitee_id]
-        invitation_data = {"inviter_username": current_user["username"], "room_id": str(room["_id"])}
+        invitation_data = {
+            "inviter_username": current_user["username"],
+            "room_id": str(room["_id"])
+        }
         socketio.emit('new_invitation', invitation_data, to=invitee_sid)
-        
-    # Atualiza a UI do anfitrião para mostrar quem foi convidado
-    socketio.emit('room_update', convert_objectid(room), to=user_sids[str(current_user["_id"])])
 
-    return jsonify(convert_objectid(room))
+    # Atualiza a sala no painel do anfitrião
+    host_sid = user_sids.get(str(current_user["_id"]))
+    if host_sid:
+        socketio.emit('room_update', room_json, to=host_sid)
+
+    return jsonify(room_json)
 
 @room_bp.route("/rooms/join/<room_id>", methods=["POST"])
 @token_required()
 def join_room(current_user, room_id):
     room, error = room_service.accept_invite(str(current_user["_id"]), current_user["username"], room_id)
-    if error: return jsonify({"error": error}), 400
-    
-    # Emite o evento 'room_update' para TODOS os jogadores na sala.
-    # Esta é a única fonte da verdade para a UI.
-    for player in room['players']:
-        if player['id'] in user_sids:
-            socketio.emit('room_update', convert_objectid(room), to=user_sids[player['id']])
-            
-    # Retorna uma resposta simples de sucesso, o cliente não usará esses dados.
-    return jsonify({"message": "Entrou na sala com sucesso"})
+    if error:
+        return jsonify({"error": error}), 400
+
+    room = convert_objectid(room)  # garante que ObjectId e datetime são strings
+
+    # 1️⃣ Enviar atualização para todos os jogadores conectados da sala
+    for player in room["players"]:
+        sid = user_sids.get(player["id"])
+        if sid:
+            socketio.emit('room_update', room, to=sid)
+
+    # 2️⃣ Retornar para quem aceitou (útil para o front atualizar também)
+    return jsonify(room)
+
+
+
 
 @room_bp.route("/rooms/<room_id>/decline", methods=["POST"])
 @token_required()

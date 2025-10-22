@@ -111,7 +111,8 @@ export function initializeLobby() {
             ui.readyBtn.classList.toggle('ready', amIReady);
         }
 
-        if (myRoom.status === "In Progress") {
+        // Redireciona para multiplayer apenas se houver 2 jogadores e a sala estiver em andamento
+        if (myRoom.status === "In Progress" && myRoom.players.length === 2) {
             window.location.href = `/game?mode=online&room_id=${myRoom._id}`;
         }
     };
@@ -186,10 +187,12 @@ export function initializeLobby() {
         ui.bell?.classList.add('active');
     });
 
-    socket.on('room_update', (room) => {
-        myRoom = room;
-        updateUI();
+    socket.on('room_update', (roomData) => {
+        console.log("🔄 Sala atualizada via socket:", roomData);
+        myRoom = roomData;   // ✅ Atualiza estado local
+        updateUI();          // ✅ Atualiza visual
     });
+
 
     socket.on('connect', fetchMyDataAndRoom);
 
@@ -212,15 +215,31 @@ export function initializeLobby() {
         if (!target.classList.contains('notification-btn')) return;
 
         const roomId = target.dataset.roomId;
+
+        // remove visualmente da lista de notificações
         notifications = notifications.filter(n => n.room_id !== roomId);
         updateNotificationsUI();
 
         if (target.classList.contains('accept')) {
-            await fetch(`/rooms/join/${roomId}`, { method: 'POST', credentials: 'include' });
+            // ✅ Faz a requisição para entrar na sala
+            const res = await fetch(`/rooms/join/${roomId}`, { 
+                method: 'POST', 
+                credentials: 'include' 
+            });
+
+            if (res.ok) {
+                const updatedRoom = await res.json();
+                // ✅ Atualiza somente localmente — o resto quem faz é o 'room_update'
+                myRoom = updatedRoom;
+                updateUI();
+                // ❌ NÃO emite socket.emit('join_room') — o backend já faz isso!
+            }
         } else {
+            // botão recusar
             await fetch(`/rooms/${roomId}/decline`, { method: 'POST', credentials: 'include' });
         }
     });
+
 
     ui.playersList.addEventListener('click', async (e) => {
         const btn = e.target.closest('.invite-btn');
@@ -231,11 +250,19 @@ export function initializeLobby() {
         }
     });
 
-    ui.readyBtn.addEventListener('click', () => {
+    ui.readyBtn.addEventListener('click', async () => {
         if (myRoom) {
-            fetch(`/rooms/${myRoom._id}/ready`, { method: 'POST', credentials: 'include' });
+            const res = await fetch(`/rooms/${myRoom._id}/ready`, { method: 'POST', credentials: 'include' });
+            if (res.ok) {
+                const updatedRoom = await res.json();
+                myRoom = updatedRoom; 
+                updateUI(); // aqui vai redirecionar para /game?mode=online
+            }
         }
     });
+
+
+
 
     ui.logoutBtn?.addEventListener('click', () => {
         const form = document.createElement('form');
