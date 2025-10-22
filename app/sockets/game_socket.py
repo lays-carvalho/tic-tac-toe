@@ -101,9 +101,96 @@ def register_game_events(socketio, db):
                 to=sid
             )
 
+
+    @socketio.on('game_over')
+    def on_game_over(data):
+        room_id = data.get('room_id')
+        winner = data.get('winner')  # 'X', 'O' ou 'Empate'/'empate'
+
+        print(f"Jogo finalizado na sala {room_id}. Vencedor: {winner}")
+
+        room = room_repo.get_room(room_id)
+        if not room:
+            return
+
+        # Para cada jogador notifica se venceu/perdeu/empatou (busca role em playersRoles)
+        for player in room.get('players', []):
+            sid = user_sids.get(str(player['id']))
+            if not sid:
+                continue
+
+            role_entry = next((r for r in room.get("playersRoles", []) if r["id"] == player["id"]), None)
+            player_role = role_entry["role"] if role_entry else None
+
+            if winner in ['X', 'O']:
+                msg = "Você venceu!" if player_role == winner else "Você perdeu!"
+            else:
+                msg = "Empate!"
+
+            socketio.emit('game_over', {
+                'winner': winner,
+                'message': msg
+            }, to=sid)
+
+        # Tenta fechar a sala pelo service; se não existir, faz fallback simples:
+        try:
+            if hasattr(room_service, "close_room"):
+                room_service.close_room(room_id)
+            else:
+                # fallback: limpa jogos e roles para a sala para que ela volte ao estado inicial
+                room['status'] = 'Ativa'
+                room['games'] = []
+                room['playersRoles'] = []
+                room_repo.update_room(str(room['_id']), room)
+        except Exception as e:
+            # não deixe exception quebrar o socket
+            print("Erro ao tentar fechar sala:", e)
+      
+
     @socketio.on('disconnect')
     def on_disconnect():
         disconnected_user_id = next((uid for uid, sid in user_sids.items() if sid == request.sid), None)
         if not disconnected_user_id: return
         user_sids.pop(disconnected_user_id, None)
         broadcast_online_users()
+
+
+    @socketio.on('exit_game')
+    def on_exit_game(data):
+        user_id = data.get('user_id')
+        room_id = data.get('room_id')
+
+        if not user_id or not room_id:
+            return
+
+        print(f"Usuário {user_id} saiu manualmente do jogo.")
+
+        # 1️⃣ Remove o jogador da sala no servidor
+        try:
+            opponent_id = room_service.leave_room(user_id, None)
+
+            # 2️⃣ Notifica o oponente, se ainda estiver conectado
+            if opponent_id and opponent_id in user_sids:
+                socketio.emit(
+                    "opponent_disconnected",
+                    {"message": "O jogador saiu do jogo."},
+                    to=user_sids[opponent_id]
+                )
+
+        except Exception as e:
+            print("Erro ao remover jogador da sala:", e)
+
+        # ❌ Não deletar a sessão do usuário aqui! Ele ainda está logado no lobby.
+        # session = session_repo.get_by_user(user_id)
+        # if session:
+        #     session_repo.delete(session['token'])
+
+        # 3️⃣ Envia para o jogador uma resposta pra ele voltar ao lobby
+        sid = user_sids.get(user_id)
+        if sid:
+            socketio.emit("return_to_lobby", {}, to=sid)
+
+        print("Jogador saiu do jogo e voltou ao lobby com segurança.")
+
+
+

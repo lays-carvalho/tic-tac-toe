@@ -21,6 +21,8 @@ export function startOnlineGame() {
     if (statusEl) statusEl.textContent = text;
   }
 
+
+
   function renderBoard(boardState, winningCombo = []) {
     cells.forEach((cell, i) => {
       const row = Math.floor(i / 3);
@@ -49,6 +51,16 @@ export function startOnlineGame() {
       move: { row, col }
     });
   }
+
+  // ✅ SAIR MANUALMENTE DO JOGO (sem quebrar nada)
+  window.leaveGame = function () {
+    socket.emit('exit_game', { user_id: myData._id, room_id: roomId });
+  };
+
+  // ✅ Volta para o lobby quando o servidor mandar
+  socket.on('return_to_lobby', () => {
+    window.location.href = "/lobby";
+  });
 
   function updateGame(game) {
     renderBoard(game.state, game.winningCombo || []);
@@ -104,6 +116,18 @@ export function startOnlineGame() {
       gameActive = false;
     }
   });
+
+  socket.on('game_over', (data) => {
+    alert(data.message);
+    window.location.href = "/lobby";
+  });
+
+  socket.on('opponent_disconnected', (data) => {
+    alert(data.message);
+    window.location.href = "/lobby";
+  });
+
+  
 
   cells.forEach(cell => cell.addEventListener("click", handleCellClick));
 }
