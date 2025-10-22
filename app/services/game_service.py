@@ -59,3 +59,27 @@ class GameService:
             if line[0] and all(cell == line[0] for cell in line): return line[0]
         if all(cell for row in state for cell in row): return "Empate"
         return None
+    
+
+    def create_game(self, room_id):
+        room = self.room_repo.get_room(room_id)
+        if not room:
+            raise ValueError("Sala não encontrada")
+
+        # Define os jogadores
+        players = room.get("players", [])
+        if len(players) != 2:
+            raise ValueError("A sala precisa de exatamente 2 jogadores para criar um jogo")
+
+        new_game = {
+            "room_id": room_id,
+            "player_x": {"id": players[0]["id"], "username": players[0]["username"]},
+            "player_o": {"id": players[1]["id"], "username": players[1]["username"]},
+            "state": [["", "", ""], ["", "", ""], ["", "", ""]],
+            "turn": "X",
+            "status": "In Progress",
+            "winner": None,
+        }
+
+        # Insere no banco e retorna o id do jogo
+        return self.game_repo.insert_game(new_game)

@@ -4,6 +4,7 @@ export function startOnlineGame() {
   const params = new URLSearchParams(window.location.search);
   const roomId = params.get('room_id');
 
+  // Seletores da UI
   const cells = Array.from(document.querySelectorAll(".cell"));
   const statusEl = document.getElementById("game-status");
   const playerMarkEl = document.getElementById("player-mark");
@@ -11,6 +12,7 @@ export function startOnlineGame() {
   const opponentMarkEl = document.getElementById("opponent-mark");
   const gameTitleEl = document.getElementById("game-title");
   const opponentIconEl = document.getElementById("opponent-icon");
+  const restartBtn = document.getElementById("restart");
 
   let myData = null;
   let myRole = null;
@@ -20,8 +22,6 @@ export function startOnlineGame() {
   function setStatus(text) {
     if (statusEl) statusEl.textContent = text;
   }
-
-
 
   function renderBoard(boardState, winningCombo = []) {
     cells.forEach((cell, i) => {
@@ -52,8 +52,9 @@ export function startOnlineGame() {
     });
   }
 
-  // ✅ SAIR MANUALMENTE DO JOGO (sem quebrar nada)
+  /// ✅ Sair manualmente do jogo
   window.leaveGame = function () {
+    if (!myData) return;
     socket.emit('exit_game', { user_id: myData._id, room_id: roomId });
   };
 
@@ -64,16 +65,25 @@ export function startOnlineGame() {
 
   function updateGame(game) {
     renderBoard(game.state, game.winningCombo || []);
+
     if (game.status === 'Closed') {
       gameActive = false;
+
       if (game.winner === 'Empate') setStatus("O jogo empatou!");
       else setStatus(`O jogador ${game.winner} venceu!`);
+
+      // Mostrar botão de reiniciar assim que o jogo terminar
+      if (restartBtn) restartBtn.style.display = "inline-block";
+
     } else {
       gameActive = game.turn === myRole;
       setStatus(gameActive
         ? "Sua vez"
         : `Aguardando ${opponentNameEl.textContent}...`
       );
+
+      // Esconde o botão durante o jogo
+      if (restartBtn) restartBtn.style.display = "none";
     }
   }
 
@@ -114,12 +124,16 @@ export function startOnlineGame() {
       opponentNameEl.textContent = "Aguardando...";
       opponentMarkEl.textContent = myRole === 'X' ? 'O' : 'X';
       gameActive = false;
+
+      if (restartBtn) restartBtn.style.display = "inline-block";
     }
   });
 
   socket.on('game_over', (data) => {
-    alert(data.message);
-    window.location.href = "/lobby";
+    setStatus(data.message);
+    gameActive = false;
+
+    if (restartBtn) restartBtn.style.display = "inline-block";
   });
 
   socket.on('opponent_disconnected', (data) => {
@@ -127,7 +141,40 @@ export function startOnlineGame() {
     window.location.href = "/lobby";
   });
 
-  
+  // Recebe solicitação de restart
+  socket.on("restart_request", (data) => {
+    if (!confirm(`${data.username} quer jogar novamente. Aceitar?`)) {
+      socket.emit("restart_response", { room_id: roomId, accept: false, user_id: myData._id });
+    } else {
+      socket.emit("restart_response", { room_id: roomId, accept: true, user_id: myData._id });
+    }
+  });
+
+  // Recebe confirmação de reinício
+  socket.on("restart_confirmed", () => {
+    setStatus("Jogo reiniciado!");
+    // gameId e tabuleiro agora serão atualizados pelo game_state enviado do servidor
+    // gameId = null;
+    // cells.forEach(cell => cell.textContent = "");
+    gameActive = true;
+
+    if (restartBtn) restartBtn.style.display = "none";
+  });
+
+
+  // Recebe negação de reinício
+  socket.on("restart_denied", () => {
+    alert("O adversário recusou reiniciar. Voltando ao lobby...");
+    window.location.href = "/lobby";
+  });
+
+  // Botão reiniciar (opcional, envia pedido ao adversário)
+  if (restartBtn) {
+    restartBtn.addEventListener("click", () => {
+      socket.emit("request_restart", { room_id: roomId, user_id: myData._id });
+      setStatus("Pedido de reinício enviado...");
+    });
+  }
 
   cells.forEach(cell => cell.addEventListener("click", handleCellClick));
 }

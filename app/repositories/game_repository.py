@@ -25,3 +25,7 @@ class GameRepository:
     def get_game(self, game_id):
         if not ObjectId.is_valid(game_id): return None
         return self.games.find_one({"_id": ObjectId(game_id)})
+    
+    def insert_game(self, game_data):
+        result = self.games.insert_one(game_data)
+        return str(result.inserted_id)
