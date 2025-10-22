@@ -177,17 +177,36 @@ def register_game_events(socketio, db):
         room_id = data.get('room_id')
         winner = data.get('winner')
 
-        print(f"Jogo finalizado na sala {room_id}. Vencedor: {winner}")
-
         room = room_repo.get_room(room_id)
         if not room: return
 
+        # Atualiza placar interno do room
+        for player in room.get('players', []):
+            role_entry = next((r for r in room.get("playersRoles", []) if r["id"] == player['id']), None)
+            player_role = role_entry["role"] if role_entry else None
+
+            if 'score' not in player:
+                player['score'] = {'wins': 0, 'losses': 0, 'draws': 0}
+
+            if winner == 'Empate':
+                player['score']['draws'] += 1
+            elif winner in ['X', 'O']:
+                if player_role == winner:
+                    player['score']['wins'] += 1
+                else:
+                    player['score']['losses'] += 1
+
+        # Atualiza a sala no DB
+        room_repo.update_room(str(room['_id']), room)
+
+        # Envia game_over + score para cada jogador
         for player in room.get('players', []):
             sid = user_sids.get(str(player['id']))
             if not sid: continue
 
             role_entry = next((r for r in room.get("playersRoles", []) if r["id"] == player['id']), None)
             player_role = role_entry["role"] if role_entry else None
+            opponent = next((p for p in room['players'] if str(p['id']) != str(player['id'])), None)
 
             if winner in ['X', 'O']:
                 msg = "Você venceu!" if player_role == winner else "Você perdeu!"
@@ -196,19 +215,13 @@ def register_game_events(socketio, db):
 
             socketio.emit('game_over', {
                 'winner': winner,
-                'message': msg
+                'message': msg,
+                'score': {
+                    'me': player['score'],
+                    'opponent': opponent['score'] if opponent else {'wins':0,'losses':0,'draws':0}
+                }
             }, to=sid)
 
-        try:
-            if hasattr(room_service, "close_room"):
-                room_service.close_room(room_id)
-            else:
-                room['status'] = 'Ativa'
-                room['games'] = []
-                room['playersRoles'] = []
-                room_repo.update_room(str(room['_id']), room)
-        except Exception as e:
-            print("Erro ao tentar fechar sala:", e)
 
     @socketio.on('disconnect')
     def on_disconnect():

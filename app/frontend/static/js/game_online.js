@@ -14,6 +14,14 @@ export function startOnlineGame() {
   const opponentIconEl = document.getElementById("opponent-icon");
   const restartBtn = document.getElementById("restart");
 
+  const playerWinsEl = document.getElementById("player-wins");
+  const playerLossesEl = document.getElementById("player-losses");
+  const playerDrawsEl = document.getElementById("player-draws");
+
+  const oppWinsEl = document.getElementById("opponent-wins");
+  const oppLossesEl = document.getElementById("opponent-losses");
+  const oppDrawsEl = document.getElementById("opponent-draws");
+
   let myData = null;
   let myRole = null;
   let gameId = null;
@@ -37,6 +45,19 @@ export function startOnlineGame() {
     });
   }
 
+  function updateScoreboardOnline(result) {
+    if (result === myRole) { // Vitória do jogador
+      if (playerWinsEl) playerWinsEl.textContent = String(Number(playerWinsEl.textContent || 0) + 1);
+      if (oppLossesEl) oppLossesEl.textContent = String(Number(oppLossesEl.textContent || 0) + 1);
+    } else if (result === (myRole === 'X' ? 'O' : 'X')) { // Vitória do oponente
+      if (oppWinsEl) oppWinsEl.textContent = String(Number(oppWinsEl.textContent || 0) + 1);
+      if (playerLossesEl) playerLossesEl.textContent = String(Number(playerLossesEl.textContent || 0) + 1);
+    } else if (result === 'Empate') { // Empate
+      if (playerDrawsEl) playerDrawsEl.textContent = String(Number(playerDrawsEl.textContent || 0) + 1);
+      if (oppDrawsEl) oppDrawsEl.textContent = String(Number(oppDrawsEl.textContent || 0) + 1);
+    }
+  }
+
   function handleCellClick(e) {
     if (!gameActive) return;
 
@@ -52,13 +73,11 @@ export function startOnlineGame() {
     });
   }
 
-  /// ✅ Sair manualmente do jogo
   window.leaveGame = function () {
     if (!myData) return;
     socket.emit('exit_game', { user_id: myData._id, room_id: roomId });
   };
 
-  // ✅ Volta para o lobby quando o servidor mandar
   socket.on('return_to_lobby', () => {
     window.location.href = "/lobby";
   });
@@ -69,10 +88,18 @@ export function startOnlineGame() {
     if (game.status === 'Closed') {
       gameActive = false;
 
-      if (game.winner === 'Empate') setStatus("O jogo empatou!");
-      else setStatus(`O jogador ${game.winner} venceu!`);
+      // Atualiza placar apenas uma vez
+      if (!game.scoreUpdated) {
+        if (game.winner === 'Empate') {
+          setStatus("O jogo empatou!");
+          updateScoreboardOnline('Empate');
+        } else {
+          setStatus(`O jogador ${game.winner} venceu!`);
+          updateScoreboardOnline(game.winner);
+        }
+        game.scoreUpdated = true; // Marca que o placar já foi atualizado
+      }
 
-      // Mostrar botão de reiniciar assim que o jogo terminar
       if (restartBtn) restartBtn.style.display = "inline-block";
 
     } else {
@@ -82,7 +109,6 @@ export function startOnlineGame() {
         : `Aguardando ${opponentNameEl.textContent}...`
       );
 
-      // Esconde o botão durante o jogo
       if (restartBtn) restartBtn.style.display = "none";
     }
   }
@@ -133,15 +159,26 @@ export function startOnlineGame() {
     setStatus(data.message);
     gameActive = false;
 
+    if (data.score) {
+        // Atualiza DOM com o score real do servidor
+        if (playerWinsEl) playerWinsEl.textContent = data.score.me.wins;
+        if (playerLossesEl) playerLossesEl.textContent = data.score.me.losses;
+        if (playerDrawsEl) playerDrawsEl.textContent = data.score.me.draws;
+
+        if (oppWinsEl) oppWinsEl.textContent = data.score.opponent.wins;
+        if (oppLossesEl) oppLossesEl.textContent = data.score.opponent.losses;
+        if (oppDrawsEl) oppDrawsEl.textContent = data.score.opponent.draws;
+    }
+
     if (restartBtn) restartBtn.style.display = "inline-block";
   });
+
 
   socket.on('opponent_disconnected', (data) => {
     alert(data.message);
     window.location.href = "/lobby";
   });
 
-  // Recebe solicitação de restart
   socket.on("restart_request", (data) => {
     if (!confirm(`${data.username} quer jogar novamente. Aceitar?`)) {
       socket.emit("restart_response", { room_id: roomId, accept: false, user_id: myData._id });
@@ -150,25 +187,17 @@ export function startOnlineGame() {
     }
   });
 
-  // Recebe confirmação de reinício
   socket.on("restart_confirmed", () => {
     setStatus("Jogo reiniciado!");
-    // gameId e tabuleiro agora serão atualizados pelo game_state enviado do servidor
-    // gameId = null;
-    // cells.forEach(cell => cell.textContent = "");
     gameActive = true;
-
     if (restartBtn) restartBtn.style.display = "none";
   });
 
-
-  // Recebe negação de reinício
   socket.on("restart_denied", () => {
     alert("O adversário recusou reiniciar. Voltando ao lobby...");
     window.location.href = "/lobby";
   });
 
-  // Botão reiniciar (opcional, envia pedido ao adversário)
   if (restartBtn) {
     restartBtn.addEventListener("click", () => {
       socket.emit("request_restart", { room_id: roomId, user_id: myData._id });
