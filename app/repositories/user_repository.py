@@ -11,7 +11,7 @@ class UserRepository:
             "username": username,
             "password": hashed,
             "is_admin": is_admin,
-            "stats": {"wins": 0, "losses": 0, "draws": 0}  # Adiciona estatísticas
+            "stats": {"wins": 0, "losses": 0, "draws": 0}  
         }
         result = self.users.insert_one(user)
         user["_id"] = str(result.inserted_id)
@@ -24,7 +24,6 @@ class UserRepository:
         return self.users.find_one({"_id": ObjectId(id)})
 
     def find_all(self):
-        # Retorna todos os dados, incluindo stats, exceto a senha
         return list(self.users.find({}, {"password": 0}))
 
     def update(self, id, data):
@@ -38,11 +37,10 @@ class UserRepository:
         return result.deleted_count > 0
     
     def update_stats(self, user_id, result):
-        # 'result' pode ser "wins", "losses", or "draws"
         if result not in ["wins", "losses", "draws"]:
             return
         
-        # Usa o operador $inc para incrementar o valor atomicamente
+
         self.users.update_one(
             {"_id": ObjectId(user_id)},
             {"$inc": {f"stats.{result}": 1}}

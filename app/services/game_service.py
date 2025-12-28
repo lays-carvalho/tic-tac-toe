@@ -81,5 +81,5 @@ class GameService:
             "winner": None,
         }
 
-        # Insere no banco e retorna o id do jogo
+        
         return self.game_repo.insert_game(new_game)

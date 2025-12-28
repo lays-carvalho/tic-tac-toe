@@ -58,7 +58,7 @@ def create_app():
             session = session_repo.get_by_token(token)
             if session:
                 user_id = session["user_id"]
-                g.current_user = user_repo.find_by_id(user_id)  # pega o usuário completo
+                g.current_user = user_repo.find_by_id(user_id)  
 
 
     # --- Rotas públicas ---

@@ -24,10 +24,10 @@ class UserService:
                 "username": user["username"],
                 "is_admin": user.get("is_admin", False)
             }
-            # O novo token não tem mais tempo de expiração, ligado à sessão
+            
             token = jwt.encode(token_payload, current_app.config["SECRET_KEY"], algorithm="HS256")
 
-            # AQUI ESTÁ A MUDANÇA: Retornando o dicionário no formato correto
+            
             return {
                 "user_id": user_id,
                 "username": user["username"],

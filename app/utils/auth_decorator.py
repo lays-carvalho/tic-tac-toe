@@ -12,13 +12,13 @@ def token_required(admin_only=False):
         def wrapper(*args, **kwargs):
             token = None
             
-            # 1. Tenta pegar o token do Header (padrão para APIs)
+            
             if "Authorization" in request.headers:
                 parts = request.headers["Authorization"].split()
                 if len(parts) == 2 and parts[0] == "Bearer":
                     token = parts[1]
 
-            # 2. AQUI ESTÁ A CORREÇÃO: Se não achou no header, tenta pegar dos cookies
+            
             if not token:
                 token = request.cookies.get('token')
 

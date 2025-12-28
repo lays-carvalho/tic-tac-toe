@@ -76,13 +76,11 @@ def delete_user(current_user, id):
 
 @user_bp.route("/ranking-data", methods=["GET"])
 def get_ranking_data():
-    # Busca todos os usuários
+
     users = user_service.get_all()
     
-    # Filtra usuários que não são admin
     players = [u for u in users if not u.get("is_admin", False)]
     
-    # Ordena os jogadores: vitórias (maior para menor), depois derrotas (menor para maior)
     sorted_players = sorted(
         players, 
         key=lambda p: (p.get("stats", {}).get("wins", 0), -p.get("stats", {}).get("losses", 0)), 

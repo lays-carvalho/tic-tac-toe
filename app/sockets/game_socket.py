@@ -26,7 +26,7 @@ def notify_monitor():
                 "players": [{"username": p["username"], "id": str(p["_id"])} for p in r.get("players", [])]
             })
 
-    # Envia para todos os clientes
+    
     socketio.emit("game_update_for_monitor", games, namespace="/")
 
 
@@ -39,7 +39,7 @@ def notify_online_users():
         if user:
             users.append({"id": str(user["_id"]), "username": user["username"]})
 
-    # Envia para todos os clientes conectados
+    
     socketio.emit("online_users_update", users, namespace="/")
 
 
@@ -57,7 +57,7 @@ def register_game_events(socketio, db):
             {"id": str(user["_id"]), "username": user["username"]}
             for s in sessions if (user := user_service.get_by_id(s["user_id"]))
         ]
-        # Envia para todos os clientes conectados
+        
         socketio.emit('online_users', online_list, namespace='/')
 
     @socketio.on('connect')

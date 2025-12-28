@@ -8,7 +8,7 @@ def convert_objectid(doc):
             if isinstance(value, ObjectId):
                 doc[key] = str(value)
             elif isinstance(value, datetime):
-                doc[key] = value.isoformat()  # <-- converte datetime em string
+                doc[key] = value.isoformat()  
             elif isinstance(value, list):
                 doc[key] = [convert_objectid(item) for item in value]
             elif isinstance(value, dict):

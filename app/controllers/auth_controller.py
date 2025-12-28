@@ -29,7 +29,6 @@ def login():
     
     session_repo.create(user_id, token)
     
-    # ✅ Notificar usuários online para o monitor
     from app.sockets.game_socket import notify_online_users
     notify_online_users()
 
@@ -44,7 +43,6 @@ def logout(current_user):
     if token:
         session_repo.delete(token)
 
-    # ✅ Notificar usuários online para o monitor
     from app.sockets.game_socket import notify_online_users
     notify_online_users()    
 

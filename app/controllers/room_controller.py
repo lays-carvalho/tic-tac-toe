@@ -16,16 +16,14 @@ room_repo = RoomRepository(db)
 @room_bp.route("/rooms", methods=["GET"])
 @token_required(admin_only=True)
 def get_rooms(current_user):
-    rooms = room_repo.get_all()  # buscar todas as salas
+    rooms = room_repo.get_all()  
     result = []
 
     for r in rooms:
-        # Garante que "players" exista
         players = r.get("players", [])
         player_list = []
 
         for p in players:
-            # Se "_id" ou "username" não existirem, ignora esse player
             if "_id" in p and "username" in p:
                 player_list.append({
                     "id": str(p["_id"]),
@@ -55,7 +53,6 @@ def invite_player(current_user, invitee_id):
 
     room_json = convert_objectid(room)
 
-    # Notifica jogador convidado
     if invitee_id in user_sids:
         invitee_sid = user_sids[invitee_id]
         invitation_data = {
@@ -64,7 +61,6 @@ def invite_player(current_user, invitee_id):
         }
         socketio.emit('new_invitation', invitation_data, to=invitee_sid)
 
-    # Atualiza a sala no painel do anfitrião
     host_sid = user_sids.get(str(current_user["_id"]))
     if host_sid:
         socketio.emit('room_update', room_json, to=host_sid)
@@ -81,7 +77,6 @@ def join_room(current_user, room_id):
 
     room = convert_objectid(room)
 
-    # Notifica todos os jogadores da sala
     for player in room.get("players", []):
         sid = user_sids.get(player.get("id"))
         if sid:
@@ -106,7 +101,6 @@ def start_game(current_user, room_id):
     if error:
         return jsonify({"error": error}), 400
 
-    # Notifica ambos os jogadores sobre a mudança de status
     for player in room.get('players', []):
         if player.get('id') in user_sids:
             socketio.emit('room_update', convert_objectid(room), to=user_sids[player['id']])

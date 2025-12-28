@@ -44,18 +44,18 @@ class RoomService:
         if len(room_to_join.get("players", [])) >= self.MAX_PLAYERS:
             return None, "A sala já está cheia."
 
-        # Deleta sala do usuário se ele já tiver uma
+        
         user_own_room = self.repo.find_room_by_creator(user_id)
         if user_own_room:
             self.repo.delete_room(str(user_own_room["_id"]))
 
-        # Adiciona jogador à sala
+        
         room_to_join["players"].append({"id": user_id, "username": username})
         room_to_join["playersReady"].append({"id": user_id, "username": username, "ready": False})
         room_to_join["playersInvited"] = [p for p in room_to_join["playersInvited"] if p["id"] != user_id]
         room_to_join["status"] = "Completa"
 
-        # Define roles X e O quando a sala ficar completa
+        
         if len(room_to_join["players"]) == 2:
             roles = random.sample(["X", "O"], 2)
             room_to_join["playersRoles"] = [
@@ -91,7 +91,7 @@ class RoomService:
         opponent_id = None
         if not room:
             self.create_or_get_room(user_id, username)
-            return None # Retorna None pois não havia oponente
+            return None 
 
         if str(room["creator"]["id"]) == user_id:
             self.repo.delete_room(str(room["_id"]))
@@ -100,7 +100,7 @@ class RoomService:
                 opponent_id = opponent["id"]
                 self.create_or_get_room(opponent["id"], opponent["username"])
         else:
-            opponent_id = room["creator"]["id"] # O criador é o oponente
+            opponent_id = room["creator"]["id"] 
             room["players"] = [p for p in room.get("players", []) if p["id"] != user_id]
             room["playersReady"] = [p for p in room.get("playersReady", []) if p["id"] != user_id]
             room["playersRoles"] = []
@@ -108,7 +108,7 @@ class RoomService:
             self.repo.update_room(str(room["_id"]), room)
         
         self.create_or_get_room(user_id, username)
-        return opponent_id # Retorna o ID do oponente
+        return opponent_id 
 
     def decline_invite(self, room_id, user_id):
         room = self.repo.get_room(room_id)
