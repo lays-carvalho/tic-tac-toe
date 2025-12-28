@@ -1,12 +1,13 @@
 # Arquivos de ambiente
 .env
+.env.*
 
 # Ambientes virtuais
 venv/
 ENV/
 .venv/
 
-# Arquivos compilados Python
+# Python
 __pycache__/
 *.py[cod]
 *.pyo
@@ -15,10 +16,13 @@ __pycache__/
 # Logs
 *.log
 
-# Arquivos de IDE
+# Banco 
+data/
+
+# IDEs
 .vscode/
 .idea/
 
-# Sistema
+# Sistema operacional
 .DS_Store
 Thumbs.db
